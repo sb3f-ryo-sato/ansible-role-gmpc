@@ -1,0 +1,5 @@
+---
+# defaults file for install-gmpc
+src_dir: /usr/local/src
+libmpd_var: libmpd-11.8.17
+gmpc_var: gmpc-11.8.16

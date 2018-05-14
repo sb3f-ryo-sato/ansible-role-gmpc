@@ -1,0 +1,68 @@
+---
+- name: Check compiled files
+  stat:
+    path: /usr/local/bin/gmpc
+  register: gmpc_bin
+
+- name: Install EPEL
+  become: true
+  package:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  with_items:
+    - "epel-release"
+  when: gmpc_bin.stat.exists == False
+
+- name: Install Development Tools
+  become: true
+  package:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  with_items:
+    - "zlib-devel"
+    - "unique"
+    - "unique-devel"
+    - "libsoup"
+    - "libsoup-devel"
+    - "sqlite"
+    - "sqlite-devel"
+    - "gob2"
+    - "vala"
+    - "vala-devel"
+    - "libSM"
+    - "libSM-devel"
+    - "libICE"
+    - "libICE-devel"
+  when: gmpc_bin.stat.exists == False
+
+- name: Extract source code
+  become: true
+  unarchive:
+    src: "http://download.sarine.nl/Programs/gmpc/11.8/{{ gmpc_var }}.tar.gz"
+    dest: "{{ src_dir }}"
+    remote_src: yes
+    owner: ansible
+    group: wheel
+  when: gmpc_bin.stat.exists == False
+
+- name: Execute ./configure
+  command: chdir="{{ src_dir }}/{{ gmpc_var }}" ./configure
+  environment:
+    LIBS: -lm
+    PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
+  when: gmpc_bin.stat.exists == False
+
+- name: Execute make
+  command: chdir="{{ src_dir }}/{{ gmpc_var }}" make
+  when: gmpc_bin.stat.exists == False
+
+- name: Execute make install
+  become: true
+  command: chdir="{{ src_dir }}/{{ gmpc_var }}" make install
+  when: gmpc_bin.stat.exists == False
+
+- name: Execute make clean
+  command: chdir="{{ src_dir }}/{{ gmpc_var }}" make clean
+  when: gmpc_bin.stat.exists == False
